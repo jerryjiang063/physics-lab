@@ -6,10 +6,17 @@ export default defineConfig({
   plugins: [react()],
   build: {
     // Increase chunk size warning limit
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 2000,
     // Optimize build performance
     cssCodeSplit: false, // Disable CSS code splitting to reduce processing
     // Reduce memory pressure during build
+    commonjsOptions: {
+      // Optimize CommonJS handling for large dependencies like recharts
+      include: [/node_modules/],
+      transformMixedEsModules: true,
+      // Require returns default export for CommonJS modules
+      requireReturnsDefault: 'auto',
+    },
     rollupOptions: {
       output: {
         manualChunks: {
@@ -30,13 +37,20 @@ export default defineConfig({
     // Use simpler CSS processing
     devSourcemap: false,
   },
-  // Optimize esbuild options
+  // Optimize esbuild options - reduce memory usage during transform
   esbuild: {
-    // Reduce memory usage
+    // Reduce memory usage - let rollup handle minification
     legalComments: 'none',
-    minifyIdentifiers: true,
-    minifySyntax: true,
-    minifyWhitespace: true,
+    // Target modern JS to reduce transformation complexity
+    target: 'es2020',
+  },
+  // Optimize dependency pre-bundling
+  optimizeDeps: {
+    include: ['recharts'],
+    esbuildOptions: {
+      // Reduce memory pressure during pre-bundling
+      target: 'es2020',
+    },
   },
 })
 

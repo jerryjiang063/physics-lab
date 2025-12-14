@@ -2,18 +2,23 @@
 
 ## 常见构建问题
 
-### 1. esbuild 服务崩溃（CSS 处理）
+### 1. esbuild 服务崩溃
 
-如果遇到 `[vite:css-post] The service is no longer running` 错误：
+如果遇到以下错误：
+- `[vite:css-post] The service is no longer running` (CSS 处理)
+- `[commonjs--resolver] The service is no longer running` (CommonJS 依赖，如 recharts)
 
 **已优化配置：**
 - ✅ 禁用了 CSS 压缩（`cssMinify: false`）以减少内存压力
 - ✅ 禁用了 CSS 代码分割（`cssCodeSplit: false`）以减少处理复杂度
-- ✅ 优化了 esbuild 配置以减少内存使用
+- ✅ 优化了 CommonJS 处理（`commonjsOptions`）以更好地处理 recharts 等依赖
+- ✅ 禁用了 esbuild 转换阶段的压缩（`esbuild.minify: false`），由 Rollup 处理
+- ✅ 优化了依赖预构建（`optimizeDeps`）以减少内存使用
 
 **如果问题仍然存在：**
 - 检查服务器内存是否充足（建议至少 2GB 可用内存）
 - 尝试增加 Node.js 内存限制：`NODE_OPTIONS="--max-old-space-size=4096" npm run build`
+- 确保在服务器上重新安装依赖（不要复制 Windows 的 node_modules）
 
 ### 2. 跨平台构建问题
 
