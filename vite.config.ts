@@ -2,55 +2,73 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
+// 使用更稳妥的构建配置，减少 esbuild 压力，提高稳定性
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      // 使用更简单的 React 插件配置
+      jsxRuntime: 'automatic',
+    }),
+  ],
   build: {
-    // Increase chunk size warning limit
+    // 增加 chunk 大小警告限制
     chunkSizeWarningLimit: 2000,
-    // Optimize build performance
-    cssCodeSplit: false, // Disable CSS code splitting to reduce processing
-    // Reduce memory pressure during build
+    // 禁用 CSS 代码分割，减少处理复杂度
+    cssCodeSplit: false,
+    // 禁用 CSS 压缩，减少 esbuild 内存压力
+    cssMinify: false,
+    // 禁用 source maps 以减少内存使用
+    sourcemap: false,
+    // 使用 terser 而不是 esbuild 进行压缩，更稳定但稍慢
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: false, // 保留 console，减少处理
+        drop_debugger: true,
+      },
+      format: {
+        comments: false,
+      },
+    },
+    // CommonJS 选项 - 简化处理
     commonjsOptions: {
-      // Optimize CommonJS handling for large dependencies like recharts
       include: [/node_modules/],
       transformMixedEsModules: true,
-      // Require returns default export for CommonJS modules
-      requireReturnsDefault: 'auto',
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'chart-vendor': ['recharts'],
+        // 简化 chunk 分割，减少处理复杂度
+        manualChunks: (id: string) => {
+          // 只分割大型依赖
+          if (id && id.indexOf('node_modules') !== -1) {
+            if (id.indexOf('recharts') !== -1) {
+              return 'chart-vendor';
+            }
+            if (id.indexOf('react') !== -1 || id.indexOf('react-dom') !== -1 || id.indexOf('react-router') !== -1) {
+              return 'react-vendor';
+            }
+          }
         },
       },
     },
-    // Disable CSS minification to reduce esbuild memory pressure
-    cssMinify: false,
   },
-  // Optimize CSS processing
+  // CSS 处理 - 最简配置
   css: {
     postcss: {
-      // Disable source maps in production to reduce memory usage
       map: false,
     },
-    // Use simpler CSS processing
     devSourcemap: false,
   },
-  // Optimize esbuild options - reduce memory usage during transform
+  // 简化 esbuild 配置，减少转译压力
+  // 让 TypeScript 编译器处理类型检查和转译
   esbuild: {
-    // Reduce memory usage - let rollup handle minification
-    legalComments: 'none',
-    // Target modern JS to reduce transformation complexity
+    // 只处理 JSX，其他由 TypeScript 处理
+    jsx: 'automatic',
+    // 不进行额外的转换
     target: 'es2020',
   },
-  // Optimize dependency pre-bundling
+  // 依赖预构建 - 简化配置，不强制预构建
   optimizeDeps: {
-    include: ['recharts'],
-    esbuildOptions: {
-      // Reduce memory pressure during pre-bundling
-      target: 'es2020',
-    },
+    force: false,
   },
 })
-
