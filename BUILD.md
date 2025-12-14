@@ -29,9 +29,23 @@
 - 确保在服务器上重新安装依赖（不要复制 Windows 的 node_modules）
 - 确保已安装 terser：`npm install --save-dev terser`
 
-### 2. 跨平台构建问题
+### 2. 跨平台构建问题（重要！）
 
-如果遇到 esbuild 平台错误（Windows → Linux），请确保：
+**⚠️ 这是最常见的构建失败原因！**
+
+如果遇到以下错误：
+```
+You installed esbuild for another platform than the one you're currently using.
+Specifically the "@esbuild/linux-x64" package is present but this platform
+needs the "@esbuild/linux-x64" package instead.
+```
+
+**原因：**
+- 在 Windows 上安装的 esbuild 是 Windows 版本
+- 服务器是 Linux，需要 Linux 版本的 esbuild
+- **即使使用 terser 压缩，Vite 仍然需要 esbuild 来加载配置和执行转译**
+
+**解决方案（必须执行）：**
 
 ### 在服务器上重新安装依赖
 
