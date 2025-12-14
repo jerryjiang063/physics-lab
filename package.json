@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:server": "npm ci && npm run build",
     "preview": "vite preview",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "postinstall": "echo 'Dependencies installed. If building on a different platform, ensure node_modules is installed on the target platform.'"
   },
   "dependencies": {
     "react": "^18.2.0",
