@@ -8,7 +8,7 @@ export default defineConfig({
     // Increase chunk size warning limit
     chunkSizeWarningLimit: 1000,
     // Optimize build performance
-    cssCodeSplit: true,
+    cssCodeSplit: false, // Disable CSS code splitting to reduce processing
     // Reduce memory pressure during build
     rollupOptions: {
       output: {
@@ -18,6 +18,8 @@ export default defineConfig({
         },
       },
     },
+    // Disable CSS minification to reduce esbuild memory pressure
+    cssMinify: false,
   },
   // Optimize CSS processing
   css: {
@@ -25,6 +27,16 @@ export default defineConfig({
       // Disable source maps in production to reduce memory usage
       map: false,
     },
+    // Use simpler CSS processing
+    devSourcemap: false,
+  },
+  // Optimize esbuild options
+  esbuild: {
+    // Reduce memory usage
+    legalComments: 'none',
+    minifyIdentifiers: true,
+    minifySyntax: true,
+    minifyWhitespace: true,
   },
 })
 

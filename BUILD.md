@@ -1,6 +1,21 @@
 # 构建说明
 
-## 跨平台构建问题
+## 常见构建问题
+
+### 1. esbuild 服务崩溃（CSS 处理）
+
+如果遇到 `[vite:css-post] The service is no longer running` 错误：
+
+**已优化配置：**
+- ✅ 禁用了 CSS 压缩（`cssMinify: false`）以减少内存压力
+- ✅ 禁用了 CSS 代码分割（`cssCodeSplit: false`）以减少处理复杂度
+- ✅ 优化了 esbuild 配置以减少内存使用
+
+**如果问题仍然存在：**
+- 检查服务器内存是否充足（建议至少 2GB 可用内存）
+- 尝试增加 Node.js 内存限制：`NODE_OPTIONS="--max-old-space-size=4096" npm run build`
+
+### 2. 跨平台构建问题
 
 如果遇到 esbuild 平台错误（Windows → Linux），请确保：
 
