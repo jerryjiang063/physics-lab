@@ -17,8 +17,8 @@ export default defineConfig({
     cssCodeSplit: false,
     // 禁用 CSS 压缩，减少 esbuild 内存压力
     cssMinify: false,
-    // 禁用 source maps 以减少内存使用
-    sourcemap: false,
+    // 临时开启 source maps 以定位 TDZ 错误
+    sourcemap: true,
     // 使用 terser 而不是 esbuild 进行压缩，更稳定但稍慢
     minify: 'terser',
     terserOptions: {
@@ -37,16 +37,30 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        // 简化 chunk 分割，减少处理复杂度
+        // 优化 chunk 分割，避免循环依赖导致的 TDZ 错误
+        // 使用更保守的策略，确保正确的依赖顺序
         manualChunks: (id: string) => {
-          // 只分割大型依赖
-          if (id && id.indexOf('node_modules') !== -1) {
-            if (id.indexOf('recharts') !== -1) {
-              return 'chart-vendor';
-            }
-            if (id.indexOf('react') !== -1 || id.indexOf('react-dom') !== -1 || id.indexOf('react-router') !== -1) {
-              return 'react-vendor';
-            }
+          if (!id || id.indexOf('node_modules') === -1) {
+            return;
+          }
+          
+          // 确保 React 核心最先加载（避免 TDZ）
+          if (id.indexOf('react/jsx-runtime') !== -1 || id.indexOf('react/jsx-dev-runtime') !== -1) {
+            return 'react-runtime';
+          }
+          if (id.indexOf('react-dom') !== -1) {
+            return 'react-dom';
+          }
+          if (id.indexOf('/react/') !== -1 || id.indexOf('\\react\\') !== -1) {
+            return 'react-vendor';
+          }
+          // React Router 必须在 React 之后
+          if (id.indexOf('react-router') !== -1) {
+            return 'react-router';
+          }
+          // Recharts 必须在 React 之后，单独分离避免循环依赖
+          if (id.indexOf('recharts') !== -1) {
+            return 'chart-vendor';
           }
         },
       },
