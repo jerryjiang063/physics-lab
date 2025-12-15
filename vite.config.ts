@@ -37,28 +37,28 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        // 优化 chunk 分割，避免循环依赖导致的 TDZ 错误
-        // 使用更保守的策略，确保正确的依赖顺序
+        // 修复：确保 React 核心库和 jsx-runtime 在一起，避免运行时 React undefined
+        // 不要将 react/jsx-runtime 单独分离，它必须和 React 核心库在一起
         manualChunks: (id: string) => {
           if (!id || id.indexOf('node_modules') === -1) {
             return;
           }
           
-          // 确保 React 核心最先加载（避免 TDZ）
-          if (id.indexOf('react/jsx-runtime') !== -1 || id.indexOf('react/jsx-dev-runtime') !== -1) {
-            return 'react-runtime';
-          }
+          // React 核心库（包括 jsx-runtime）必须在一起，不能分离
+          // 这样可以确保 React 的 __SECRET_INTERNALS 正确初始化
           if (id.indexOf('react-dom') !== -1) {
             return 'react-dom';
           }
-          if (id.indexOf('/react/') !== -1 || id.indexOf('\\react\\') !== -1) {
+          // React 核心库（包括所有 react 相关，但不包括 react-dom）
+          // 注意：不要单独分离 jsx-runtime，它必须和 react 核心在一起
+          if (id.indexOf('react') !== -1 && id.indexOf('react-dom') === -1) {
             return 'react-vendor';
           }
           // React Router 必须在 React 之后
           if (id.indexOf('react-router') !== -1) {
             return 'react-router';
           }
-          // Recharts 必须在 React 之后，单独分离避免循环依赖
+          // Recharts 必须在 React 之后
           if (id.indexOf('recharts') !== -1) {
             return 'chart-vendor';
           }
