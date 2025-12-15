@@ -30,15 +30,19 @@ export default defineConfig({
         comments: false,
       },
     },
-    // CommonJS 选项 - 简化处理
+    // CommonJS 选项 - 优化处理，避免 esbuild 崩溃
     commonjsOptions: {
       include: [/node_modules/],
       transformMixedEsModules: true,
+      // 优化 prop-types 等大型 CommonJS 模块的处理
+      requireReturnsDefault: 'auto',
+      // 排除一些可能导致问题的模块，让它们保持原样
+      exclude: [],
     },
     rollupOptions: {
       output: {
         // 修复：确保 React 核心库和 jsx-runtime 在一起，避免运行时 React undefined
-        // 不要将 react/jsx-runtime 单独分离，它必须和 React 核心库在一起
+        // 简化 chunk 分割，减少 esbuild 处理压力
         manualChunks: (id: string) => {
           if (!id || id.indexOf('node_modules') === -1) {
             return;
@@ -51,7 +55,13 @@ export default defineConfig({
           }
           // React 核心库（包括所有 react 相关，但不包括 react-dom）
           // 注意：不要单独分离 jsx-runtime，它必须和 react 核心在一起
+          // 同时包含 prop-types，避免单独处理导致 esbuild 崩溃
           if (id.indexOf('react') !== -1 && id.indexOf('react-dom') === -1) {
+            return 'react-vendor';
+          }
+          // prop-types 通常和 React 一起使用，放在 react-vendor 中
+          // 但如果已经匹配了 react，这里不会执行
+          if (id.indexOf('prop-types') !== -1) {
             return 'react-vendor';
           }
           // React Router 必须在 React 之后
